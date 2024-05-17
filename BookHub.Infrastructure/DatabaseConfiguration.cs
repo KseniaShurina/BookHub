@@ -17,7 +17,11 @@ namespace BookHub.Infrastructure
         {
             services.AddDbContext<IApplicationContext, ApplicationContext>(options =>
             {
-                var connectionString = configuration.GetConnectionString("Database:ConnectionString");
+                var connectionString = configuration.GetValue<string>("Database:ConnectionString")
+                                       ?? throw new ArgumentException("Database:ConnectionString");
+
+                Console.WriteLine($"Connection string from appsettings.json: {connectionString}");
+
                 var isLogEnabled = configuration.GetValue<bool>("Database:IsLogEnabled");
                 options.UseNpgsql(connectionString);
                 if (isLogEnabled)
