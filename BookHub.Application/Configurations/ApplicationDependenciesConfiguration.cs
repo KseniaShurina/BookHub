@@ -1,12 +1,12 @@
-﻿using BookHub.Core.Interfaces;
-using BookHub.Core.Services;
-using BookHub.Infrastructure;
+﻿using BookHub.Application.Interfaces;
+using BookHub.Application.Services;
+using BookHub.Infrastructure.Configurations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BookHub.Core
+namespace BookHub.Application.Configurations
 {
-    public static class DependenciesConfiguration
+    public static class ApplicationDependenciesConfiguration
     {
         /// <summary>
         /// It manages of life cycle of services

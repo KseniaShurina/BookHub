@@ -1,4 +1,4 @@
-using BookHub.Core;
+using BookHub.Application.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 

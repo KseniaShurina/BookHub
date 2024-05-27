@@ -7,12 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BookHub.Domain\BookHub.Domain.csproj" />
-    <ProjectReference Include="..\BookHub.Infrastructure\BookHub.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
+    <Folder Include="Exceptions\" />
   </ItemGroup>
 
 </Project>

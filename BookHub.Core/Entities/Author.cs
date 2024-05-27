@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BookHub.Domain.Entities
+namespace BookHub.Core.Entities
 {
     public class Author
     {

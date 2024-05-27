@@ -1,6 +1,6 @@
-﻿using BookHub.Domain.Entities;
+﻿using BookHub.Core.Entities;
 
-namespace BookHub.Core.Interfaces;
+namespace BookHub.Application.Interfaces;
 
 public interface IAuthorService
 {

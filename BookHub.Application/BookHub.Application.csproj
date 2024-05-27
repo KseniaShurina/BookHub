@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BookHub.Domain\BookHub.Domain.csproj" />
+    <ProjectReference Include="..\BookHub.Core\BookHub.Core.csproj" />
+    <ProjectReference Include="..\BookHub.Infrastructure\BookHub.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using BookHub.Core.Interfaces;
+﻿using BookHub.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookHub.Controllers
