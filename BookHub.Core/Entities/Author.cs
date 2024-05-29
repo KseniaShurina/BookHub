@@ -2,7 +2,7 @@
 
 namespace BookHub.Core.Entities
 {
-    public class Author
+    public class Author 
     {
         public Guid Id { get; init; }
 

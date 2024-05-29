@@ -1,20 +1,25 @@
-﻿using BookHub.Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
+﻿using BookHub.Core.Entities;
+using BookHub.Infrastructure.Interfaces;
 
 namespace BookHub.Infrastructure;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationContext _context;
+    private IRepository<Author>? _authorRepository;
+    private IRepository<Book>? _bookRepository;
+
     public UnitOfWork(ApplicationContext context)
     {
         _context = context;
     }
 
-    public DbConnection GetDbConnection()
+    public IRepository<Author> Authors => _authorRepository ??= new Repository<Author>(_context);
+    public IRepository<Book> Books => _bookRepository ??= new Repository<Book>(_context);
+
+    public Task<int> SaveChangesAsync()
     {
-        return _context.Database.GetDbConnection();
+        return _context.SaveChangesAsync();
     }
 
     public int SaveChanges()
@@ -22,18 +27,16 @@ public class UnitOfWork : IUnitOfWork
         return _context.SaveChanges();
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return _context.SaveChangesAsync(cancellationToken);
-    }
-
     public void Dispose()
     {
         _context.Dispose();
+        //prevents the finalizer from being called on an object
+        GC.SuppressFinalize(this);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        return _context.DisposeAsync();
+        await _context.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 }

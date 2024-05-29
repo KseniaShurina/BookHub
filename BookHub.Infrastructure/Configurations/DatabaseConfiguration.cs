@@ -32,8 +32,7 @@ namespace BookHub.Infrastructure.Configurations
                     options.LogTo(Console.WriteLine, LogLevel.Information);
                 }
             }, ServiceLifetime.Transient); // Transient lifecycle for DbContext
-                                          
-            //Register UnitOfWork
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }

@@ -2,25 +2,23 @@
 using BookHub.Application.Models;
 using BookHub.Core.Entities;
 using BookHub.Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace BookHub.Application.Services
 {
     internal class AuthorService : IAuthorService
     {
-        private readonly IApplicationContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthorService(IApplicationContext context)
+        public AuthorService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Author> GetAuthorById(Guid id)
         {
-            var result = await _context.Authors.FirstOrDefaultAsync(i => i.Id == id);
+            var result = await _unitOfWork.Authors.GetByIdAsync(id);
 
-            if (result is null)
+            if (result == null)
             {
                 throw new NullReferenceException(nameof(result));
             }
@@ -30,24 +28,22 @@ namespace BookHub.Application.Services
             }
         }
 
-        public async Task<CreateAuthorModel> CreateAuthor(Author entity)
-        {
-            //TODO Add Validation
+    //    public Task<Author> CreateAuthor(Author entity)
+    //    {
+    //        var author = new Author
+    //        {
+    //            Id = Guid.NewGuid(),
+    //            FirstName = entity.FirstName,
+    //            LastName = entity.LastName,
+    //            DateOfBirth = entity.DateOfBirth,
+    //            DateOfDeath = entity.DateOfDeath,
+    //            Description = entity.Description
+    //        };
+    //        throw new NotImplementedException();
+    //        _context.Authors.Add(author);
+    //        await _context.SaveChangesAsync(author);
 
-            var author = new CreateAuthorModel
-            {
-                Id = Guid.NewGuid(),
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                DateOfBirth = entity.DateOfBirth,
-                DateOfDeath = entity.DateOfDeath,
-                Description = entity.Description
-            };
-            throw new NotImplementedException();
-            //_context.Authors.Add(author);
-            //await _context.SaveChangesAsync(author);
-
-            //return CreateAuthorModel;
-        }
+    //        return CreateAuthorModel;
+    //    }
     }
 }

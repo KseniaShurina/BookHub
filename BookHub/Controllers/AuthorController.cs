@@ -1,18 +1,30 @@
 ﻿using BookHub.Application.Interfaces;
+using BookHub.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookHub.Controllers
 {
-    public class AuthorController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthorController : ControllerBase
     {
+        private readonly ILogger<AuthorController> _logger;
         private readonly IAuthorService _authorService;
-        public AuthorController(IAuthorService authorService)
+        public AuthorController(ILogger<AuthorController> logger, IAuthorService authorService)
         {
+            _logger = logger;
             _authorService = authorService;
         }
-        public IActionResult Index()
+        //public IActionResult Index()
+        //{
+        //    return View();
+        //}
+
+        [HttpGet]
+        public Task<Author> Get(Guid id)
         {
-            return View();
+            var response = _authorService.GetAuthorById(id);
+            return response;
         }
     }
 }
