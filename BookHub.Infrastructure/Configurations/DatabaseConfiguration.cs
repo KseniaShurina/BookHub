@@ -6,14 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace BookHub.Infrastructure.Configurations
 {
+    /// <summary>
+    /// Provides methods for configuring database-related services and dependencies.
+    /// </summary>
     public static class DatabaseConfiguration
     {
         /// <summary>
-        /// Registers infrastructure dependencies, such as database context,
-        /// using Entity Framework Core.
+        /// Registers infrastructure dependencies
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
+        /// <param name="services">The service collection to add dependencies to.</param>
+        /// <param name="configuration">The application configuration containing connection string and other settings.</param>
+        /// <exception cref="ArgumentException">Thrown when the connection string is not configured.</exception>
         public static void RegisterInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
         {
             //Reading and checking connection string from configuration
@@ -33,6 +36,7 @@ namespace BookHub.Infrastructure.Configurations
                 }
             }, ServiceLifetime.Transient); // Transient lifecycle for DbContext
 
+            // Registering the Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }
