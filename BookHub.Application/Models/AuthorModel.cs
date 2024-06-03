@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BookHub.Application.Models
 {
-    internal class AuthorModel
+    public class AuthorModel
     {
         public Guid Id { get; init; }
 

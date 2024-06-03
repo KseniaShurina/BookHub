@@ -1,20 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
+using BookHub.Application.Models;
+using BookHub.Core.Entities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BookHub.Application.Configurations
 {
-    internal class AutoMapperConfiguration
+    public static class AutoMapperConfiguration
     {
-        public AutoMapperConfiguration() { }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="services">Represents the collection of services to which we add AutoMapper</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public static IServiceCollection AddAutoMapperProfiles(IServiceCollection services)
+        public static IServiceCollection AddAutoMapperConfigurations(this IServiceCollection services)
         {
-            var configuration = new AutoMapperConfiguration();
-            throw new NotImplementedException();
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<Author, CreateAuthorModel>();
+            });
+            IMapper mapper = config.CreateMapper();
+            services.AddSingleton(mapper);
+
+            return services;
         }
     }
 }

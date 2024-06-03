@@ -1,4 +1,6 @@
-﻿using BookHub.Application.Interfaces;
+﻿using AutoMapper;
+using BookHub.Application.Interfaces;
+using BookHub.Application.Models;
 using BookHub.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,20 +12,27 @@ namespace BookHub.Controllers
     {
         private readonly ILogger<AuthorController> _logger;
         private readonly IAuthorService _authorService;
-        public AuthorController(ILogger<AuthorController> logger, IAuthorService authorService)
+        private readonly IMapper _mapper;
+        public AuthorController(ILogger<AuthorController> logger, IAuthorService authorService, IMapper mapper)
         {
             _logger = logger;
             _authorService = authorService;
+            _mapper = mapper;
         }
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
 
         [HttpGet]
-        public Task<Author> Get(Guid id)
+        public async Task<AuthorModel> Get(Guid id)
         {
-            var response = _authorService.GetAuthorById(id);
+            var entity = await _authorService.GetAuthorById(id);
+            var result = _mapper.Map<AuthorModel>(entity);
+            return result;
+        }
+
+        [HttpPost]
+        public async Task<Author> Add(CreateAuthorModel author)
+        {
+            var id = await _authorService.CreateAuthor(author);
+            var response = await _authorService.GetAuthorById(id);
             return response;
         }
     }

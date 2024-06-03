@@ -1,4 +1,5 @@
-﻿using BookHub.Application.Interfaces;
+﻿using AutoMapper;
+using BookHub.Application.Interfaces;
 using BookHub.Application.Models;
 using BookHub.Core.Entities;
 using BookHub.Infrastructure.Interfaces;
@@ -9,6 +10,7 @@ namespace BookHub.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
+
         public AuthorService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -16,34 +18,32 @@ namespace BookHub.Application.Services
 
         public async Task<Author> GetAuthorById(Guid id)
         {
-            var result = await _unitOfWork.Authors.GetByIdAsync(id);
-
-            if (result == null)
-            {
-                throw new NullReferenceException(nameof(result));
-            }
-            else
-            {
-                return result;
-            }
+            var entity = await _unitOfWork.Authors.GetByIdAsync(id) 
+                         ?? throw new NullReferenceException("Author is null");
+            return entity;
         }
 
-    //    public Task<Author> CreateAuthor(Author entity)
-    //    {
-    //        var author = new Author
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            FirstName = entity.FirstName,
-    //            LastName = entity.LastName,
-    //            DateOfBirth = entity.DateOfBirth,
-    //            DateOfDeath = entity.DateOfDeath,
-    //            Description = entity.Description
-    //        };
-    //        throw new NotImplementedException();
-    //        _context.Authors.Add(author);
-    //        await _context.SaveChangesAsync(author);
+        public async Task<Guid> CreateAuthor(CreateAuthorModel entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "The author entity cannot be null.");
+            }
 
-    //        return CreateAuthorModel;
-    //    }
+            var author = new Author
+            {
+                Id = Guid.NewGuid(),
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                DateOfBirth = entity.DateOfBirth,
+                DateOfDeath = entity.DateOfDeath,
+                Description = entity.Description
+            };
+
+            await _unitOfWork.Authors.AddAsync(author);
+            await _unitOfWork.SaveChangesAsync();
+
+            return author.Id;
+        }
     }
 }

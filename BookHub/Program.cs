@@ -8,7 +8,9 @@ builder.Services.AddControllersWithViews();
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false);
 
+
 builder.Services.AddDependencies(builder.Configuration);
+builder.Services.AddAutoMapperConfigurations();
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 

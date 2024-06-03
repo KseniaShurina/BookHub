@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BookHub.Application.Models
 {
-    internal class CreateAuthorModel
+    public class CreateAuthorModel
     {
-        public Guid Id { get; init; }
 
         [MaxLength(100)]
         public string FirstName { get; set; } = null!;
@@ -19,6 +18,5 @@ namespace BookHub.Application.Models
 
         [MaxLength(1000)]
         public string Description { get; set; } = null!;
-        public List<Book> Books { get; set; } = null!;
     }
 }

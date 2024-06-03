@@ -38,35 +38,36 @@ public class Repository<T> : IRepository<T> where T : class
     /// Gets all entities asynchronously.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains a read-only collection of entities.</returns>
-    public Task<IReadOnlyCollection<T>> GetAllAsync()
+    public async Task<IReadOnlyCollection<T>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _dbSet.ToListAsync();
     }
     /// <summary>
     /// Adds a new entity asynchronously.
     /// </summary>
     /// <param name="entity">The entity to add.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public Task AddAsync(T entity)
+    public async Task AddAsync(T entity)
     {
-        throw new NotImplementedException();
+        await _dbSet.AddAsync(entity);
     }
 
     /// <summary>
     /// Updates an existing entity.
     /// </summary>
     /// <param name="entity">The entity to update.</param>
-    public void Update(T entity)
+    public void UpdateAsync(T entity)
     {
-        throw new NotImplementedException();
+        _dbSet.Update(entity);
     }
 
     /// <summary>
     /// Removes an existing entity.
     /// </summary>
     /// <param name="entity">The entity to remove.</param>
-    public void Remove(T entity)
+    public async void Remove(Guid id)
     {
-        throw new NotImplementedException();
+        var entity = await _dbSet.FindAsync(id) ?? throw new NullReferenceException("Entity not found");
+        _dbSet.Remove(entity);    
     }
 }
