@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using BookHub.Application.Models;
-using BookHub.Core.Entities;
+﻿using BookHub.Application.Profiles;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BookHub.Application.Configurations
@@ -9,12 +7,8 @@ namespace BookHub.Application.Configurations
     {
         public static IServiceCollection AddAutoMapperConfigurations(this IServiceCollection services)
         {
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<Author, CreateAuthorModel>();
-            });
-            IMapper mapper = config.CreateMapper();
-            services.AddSingleton(mapper);
+            services.AddAutoMapper(typeof(AuthorProfile).Assembly);
+            services.AddAutoMapper(typeof(BookProfile).Assembly);
 
             return services;
         }

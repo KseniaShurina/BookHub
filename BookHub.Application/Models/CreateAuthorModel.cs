@@ -1,5 +1,4 @@
-﻿using BookHub.Core.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BookHub.Application.Models
 {

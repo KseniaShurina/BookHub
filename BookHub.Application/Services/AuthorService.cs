@@ -9,18 +9,29 @@ namespace BookHub.Application.Services
     internal class AuthorService : IAuthorService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-
-        public AuthorService(IUnitOfWork unitOfWork)
+        public AuthorService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<Author> GetAuthorById(Guid id)
+        public async Task<AuthorModel> GetAuthorById(Guid id)
         {
             var entity = await _unitOfWork.Authors.GetByIdAsync(id) 
                          ?? throw new NullReferenceException("Author is null");
-            return entity;
+            var model = _mapper.Map<AuthorModel>(entity);
+            return model;
+        }
+
+        public async Task<IReadOnlyCollection<AuthorModel>> GetAllAuthors()
+        {
+            var entities = await _unitOfWork.Authors.GetAllAsync();
+
+            var models = _mapper.Map<List<AuthorModel>>(entities);
+
+            return models;
         }
 
         public async Task<Guid> CreateAuthor(CreateAuthorModel entity)
