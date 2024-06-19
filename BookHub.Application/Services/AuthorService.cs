@@ -19,15 +19,22 @@ namespace BookHub.Application.Services
 
         public async Task<AuthorModel> GetAuthorById(Guid id)
         {
-            var entity = await _unitOfWork.Authors.GetByIdAsync(id) 
-                         ?? throw new NullReferenceException("Author is null");
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException("Id is not valid", nameof(id));
+            }
+
+            var entity = await _unitOfWork.Authors.GetByIdAsync(id, includeProperties: "Books") 
+                         ?? throw new InvalidOperationException("Author is null");
+
             var model = _mapper.Map<AuthorModel>(entity);
             return model;
         }
 
         public async Task<IReadOnlyCollection<AuthorModel>> GetAllAuthors()
         {
-            var entities = await _unitOfWork.Authors.GetAllAsync();
+            var entities = await _unitOfWork.Authors.GetAllAsync(includeProperties: "Books")
+                           ?? throw new InvalidOperationException("Authors collection is null");
 
             var models = _mapper.Map<List<AuthorModel>>(entities);
 

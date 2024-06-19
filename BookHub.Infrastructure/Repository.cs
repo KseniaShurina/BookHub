@@ -1,4 +1,5 @@
-﻿using BookHub.Infrastructure.Interfaces;
+﻿using System.Linq.Expressions;
+using BookHub.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookHub.Infrastructure;
@@ -24,24 +25,61 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// Gets an entity by its unique identifier asynchronously.
+    /// Asynchronously retrieves an entity by its unique identifier, optionally including related properties.
     /// </summary>
     /// <param name="id">The unique identifier of the entity.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the entity.</returns>
-    /// <exception cref="NullReferenceException">Thrown when the entity is not found.</exception>
-    public async Task<T> GetByIdAsync(Guid id)
+    /// <param name="includeProperties">A comma-separated list of related properties to include in the query.</param>
+    /// <returns>The entity if found; otherwise, null.</returns>
+    public virtual async Task<T> GetByIdAsync(Guid id, string includeProperties = "")
     {
-        return await _dbSet.FindAsync(id) ?? throw new NullReferenceException("Entity is null");
+        //Creating a Basic Query to _dbSet
+        IQueryable<T> query = _dbSet;
+
+        //Adding Related Properties to a Query
+        foreach (var includeProperty in includeProperties.Split
+                     (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+
+        return await query.SingleOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
     }
 
     /// <summary>
-    /// Gets all entities asynchronously.
+    /// Asynchronously retrieves a collection of entities from the database with optional filtering, sorting, and inclusion of related properties.
     /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a read-only collection of entities.</returns>
-    public async Task<IReadOnlyCollection<T>> GetAllAsync()
+    /// <param name="filter">An optional filter expression to apply to the query.</param>
+    /// <param name="orderBy">An optional function to sort the query results.</param>
+    /// <param name="includeProperties">A comma-separated list of related properties to include in the query.</param>
+    /// <returns>A collection of entities that match the specified criteria.</returns>
+    public virtual async Task<IEnumerable<T>> GetAllAsync(
+        Expression<Func<T, bool>> filter = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        string includeProperties = "")
     {
-        return await _dbSet.ToListAsync();
+        IQueryable<T> query = _dbSet;
+
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+
+        foreach (var includeProperty in includeProperties.Split
+                     (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+
+        if (orderBy != null)
+        {
+            return await orderBy(query).ToListAsync();
+        }
+        else
+        {
+            return await query.ToListAsync();
+        }
     }
+
     /// <summary>
     /// Adds a new entity asynchronously.
     /// </summary>

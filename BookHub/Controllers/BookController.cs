@@ -22,6 +22,7 @@ namespace BookHub.Controllers
         public async Task<BookModel> Get(Guid id)
         {
             var result = await _bookService.GetBookById(id);
+
             return result;
         }
 

@@ -8,6 +8,4 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IRepository<Book> Books { get; }
     Task<int> SaveChangesAsync();
     int SaveChanges();
-
-    //Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

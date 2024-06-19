@@ -1,5 +1,4 @@
-﻿using BookHub.Core.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BookHub.Application.Models
 {
@@ -12,7 +11,7 @@ namespace BookHub.Application.Models
 
         [MaxLength(1000)]
         public string Description { get; set; } = null!;
-        public Guid AuthorId { get; set; }
-        public Author Author { get; set; } = null!;
+
+        public AuthorModelInfo Author { get; set; } = null!;
     }
 }

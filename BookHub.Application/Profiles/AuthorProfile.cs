@@ -9,6 +9,7 @@ namespace BookHub.Application.Profiles
         public AuthorProfile()
         {
             CreateMap<Author, AuthorModel>();
+            CreateMap<Author, AuthorModelInfo>();
             CreateMap<AuthorModel, Author>();
         }
     }
