@@ -32,11 +32,10 @@ namespace BookHub.Controllers
         }
 
         [HttpPost]
-        public async Task<AuthorModel> Add(CreateAuthorModel author)
+        public async Task<string> Add(CreateAuthorModel author)
         {
             var id = await _authorService.CreateAuthor(author);
-            var response = await _authorService.GetAuthorById(id);
-            return response;
+            return $"Author was created. ID: {id}";
         }
     }
 }

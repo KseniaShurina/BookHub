@@ -25,6 +25,16 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.AnyAsync(predicate);
+    }
+
+    /// <summary>
     /// Asynchronously retrieves an entity by its unique identifier, optionally including related properties.
     /// </summary>
     /// <param name="id">The unique identifier of the entity.</param>
