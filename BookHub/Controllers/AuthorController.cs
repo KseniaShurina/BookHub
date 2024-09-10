@@ -37,5 +37,12 @@ namespace BookHub.Controllers
             var id = await _authorService.CreateAuthor(author);
             return $"Author was created. ID: {id}";
         }
+
+        [HttpDelete("{id}")]
+        public async Task<string> Delete(Guid id)
+        {
+            await _authorService.DeleteAuthor(id);
+            return $"Author {id} is deleted";
+        }
     }
 }

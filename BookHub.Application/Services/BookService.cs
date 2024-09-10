@@ -19,6 +19,12 @@ namespace BookHub.Application.Services
             _authorService = authorService;
         }
 
+        public async Task<bool> IsBookExistAsyncById(Guid id)
+        {
+            return await _unitOfWork.Books.ExistsAsync(
+                a => a.Id == id);
+        }
+
         public async Task<BookModel> GetBookById(Guid id)
         {
             if (id == Guid.Empty)
@@ -62,6 +68,21 @@ namespace BookHub.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             return entity.Id;
+        }
+
+        public async Task DeleteBook(Guid id)
+        {
+            bool exists = await IsBookExistAsyncById(id);
+
+            if (exists)
+            {
+                await _unitOfWork.Books.RemoveAsync(id);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                throw new InvalidOperationException($"Book {id} does not exist");
+            }
         }
     }
 }

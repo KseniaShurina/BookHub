@@ -7,4 +7,5 @@ public interface IBookService
     Task<BookModel> GetBookById(Guid id);
     Task<IReadOnlyCollection<BookModel>> GetAllBooks();
     Task<Guid> CreateBook(CreateBookModel model);
+    Task DeleteBook(Guid id);
 }

@@ -15,6 +15,6 @@ public interface IRepository<T> where T : class
             IOrderedQueryable<T>> orderBy = null, string includeProperties = "");
 
     Task AddAsync(T entity);
-    void UpdateAsync(T entity);
-    void Remove(Guid id);
+    void Update(T entity);
+    Task RemoveAsync(Guid id);
 }

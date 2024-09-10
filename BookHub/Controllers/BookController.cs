@@ -38,5 +38,12 @@ namespace BookHub.Controllers
             var id = await _bookService.CreateBook(book);
             return id;
         }
+
+        [HttpDelete("{id}")]
+        public async Task<string> Delete(Guid id)
+        {
+            await _bookService.DeleteBook(id);
+            return $"Book {id} is deleted";
+        }
     }
 }

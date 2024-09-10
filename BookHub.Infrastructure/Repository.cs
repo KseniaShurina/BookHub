@@ -104,7 +104,7 @@ public class Repository<T> : IRepository<T> where T : class
     /// Updates an existing entity.
     /// </summary>
     /// <param name="entity">The entity to update.</param>
-    public void UpdateAsync(T entity)
+    public void Update(T entity)
     {
         _dbSet.Update(entity);
     }
@@ -113,9 +113,9 @@ public class Repository<T> : IRepository<T> where T : class
     /// Removes an existing entity.
     /// </summary>
     /// <param name="entity">The entity to remove.</param>
-    public async void Remove(Guid id)
+    public async Task RemoveAsync(Guid id)
     {
         var entity = await _dbSet.FindAsync(id) ?? throw new NullReferenceException("Entity not found");
-        _dbSet.Remove(entity);    
+        _dbSet.Remove(entity);
     }
 }

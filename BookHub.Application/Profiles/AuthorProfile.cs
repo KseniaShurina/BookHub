@@ -11,6 +11,7 @@ namespace BookHub.Application.Profiles
             CreateMap<Author, AuthorModel>();
             CreateMap<Author, AuthorModelInfo>();
             CreateMap<AuthorModel, Author>();
+            CreateMap<UpdateAuthorModel, Author>();
         }
     }
 }

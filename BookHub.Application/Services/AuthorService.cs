@@ -17,6 +17,12 @@ namespace BookHub.Application.Services
             _mapper = mapper;
         }
 
+        public async Task<bool> IsAuthorExistAsyncById(Guid id)
+        {
+            return await _unitOfWork.Authors.ExistsAsync(
+                a => a.Id == id);
+        }
+
         public async Task<bool> IsAuthorExistAsync(string firstName, string lastName)
         {
             return await _unitOfWork.Authors.ExistsAsync(
@@ -31,7 +37,7 @@ namespace BookHub.Application.Services
                 throw new ArgumentException("Id is not valid", nameof(id));
             }
 
-            var entity = await _unitOfWork.Authors.GetByIdAsync(id, includeProperties: "Books") 
+            var entity = await _unitOfWork.Authors.GetByIdAsync(id, includeProperties: "Books")
                          ?? throw new InvalidOperationException("Author is null");
 
             var model = _mapper.Map<AuthorModel>(entity);
@@ -76,6 +82,39 @@ namespace BookHub.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             return entity.Id;
+        }
+
+        public async Task<AuthorModel> UpdateAuthor(UpdateAuthorModel model)
+        {
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
+            var entity = await _unitOfWork.Authors.GetByIdAsync(model.Id) 
+                         ?? throw new KeyNotFoundException($"Author {model.Id} not found");
+
+            //updating author entity fields
+            _mapper.Map(model, entity);
+            _unitOfWork.Authors.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<AuthorModel>(entity);
+        }
+
+        public async Task DeleteAuthor(Guid id)
+        {
+            bool exists = await IsAuthorExistAsyncById(id);
+
+            if (exists)
+            {
+                await _unitOfWork.Authors.RemoveAsync(id);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                throw new InvalidOperationException($"Author {id} does not exist");
+            }
         }
     }
 }
