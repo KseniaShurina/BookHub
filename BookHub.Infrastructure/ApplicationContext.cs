@@ -26,5 +26,11 @@ namespace BookHub.Infrastructure
         /// This represents the collection of all <see cref="Author"/> entities in the context.
         /// </summary>
         public DbSet<Author> Authors { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets the Users DbSet.
+        /// This represents the collection of all <see cref="User"/> entities in the context.
+        /// </summary>
+        public DbSet<User> Users { get; set; } = null!;
     }
 }

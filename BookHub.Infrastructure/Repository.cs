@@ -25,13 +25,24 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// 
+    /// Checks if any entity in the DbSet matches the specified predicate.
     /// </summary>
-    /// <param name="predicate"></param>
-    /// <returns></returns>
+    /// <param name="predicate">A lambda expression representing the condition to check.</param>
+    /// <returns>true if any entity matches the predicate. Otherwise, false.</returns>
     public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
     {
         return await _dbSet.AnyAsync(predicate);
+    }
+
+    /// <summary>
+    /// Returns the first entity that matches the specified condition.
+    /// </summary>
+    /// <param name="expression">A lambda expression representing the condition to match.</param>
+    /// <returns>The first entity that matches the condition, or null if no entity matches.</returns>
+    public async Task<T> FindByConditionAsync(Expression<Func<T, bool>> expression)
+    {
+        return await _context.Set<T>().FirstOrDefaultAsync(expression) 
+               ?? throw new ArgumentNullException();
     }
 
     /// <summary>
@@ -52,7 +63,8 @@ public class Repository<T> : IRepository<T> where T : class
             query = query.Include(includeProperty);
         }
 
-        return await query.SingleOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
+        return await query.SingleOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id) 
+               ?? throw new ArgumentNullException(); ;
     }
 
     /// <summary>

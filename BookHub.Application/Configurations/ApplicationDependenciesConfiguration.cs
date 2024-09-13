@@ -20,6 +20,7 @@ namespace BookHub.Application.Configurations
 
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<IBookService, BookService>();
+            services.AddTransient<IAccountService, AccountService>();
 
             return services;
         }
