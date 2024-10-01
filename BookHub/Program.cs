@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using BookHub.Application.Configurations;
 using BookHub.Configurations;
+using BookHub.Constants;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -17,28 +19,54 @@ builder.Services.AddAutoMapperConfigurations();
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-//
+// Configure JSON serialization to avoid circular references when converting objects to JSON.
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-// Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(x =>
+// Registers the CORS services into the dependency injection container
+builder.Services.AddCors(options =>
 {
-    // JWT configuration object
-    var jwtConfig = JwtConfiguration.Create(builder.Configuration);
-
-    x.TokenValidationParameters = new TokenValidationParameters
+    // A CORS policy is being defined. This policy can be applied to specific endpoints or globally for the entire application
+    options.AddPolicy("AllowAngularApp", configurePolicy =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtConfig.SecretKey)),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidIssuer = jwtConfig.Issuer,
-        ValidAudience = jwtConfig.Audience,
-        ValidateLifetime = true
-    };
+        configurePolicy
+            .AllowAnyOrigin() // This allows requests from any origin (any domain)
+            .AllowAnyMethod() // This allows any HTTP method 
+            .AllowAnyHeader(); // This allows requests to include any HTTP headers
+    });
 });
+
+// Authentication
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = AuthConstants.ExternalProviderAuthScheme;
+    })
+    .AddJwtBearer(x =>
+    {
+        // JWT configuration object
+        var jwtConfig = JwtConfiguration.Create(builder.Configuration);
+
+        x.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtConfig.SecretKey)),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = jwtConfig.Issuer,
+            ValidAudience = jwtConfig.Audience,
+            ValidateLifetime = true
+        };
+    })
+    .AddCookie(AuthConstants.ExternalProviderAuthScheme)
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        var googleAuth = builder.Configuration.GetSection("Authentication:Google");
+
+        options.ClientId = googleAuth["ClientId"]!;
+        options.ClientSecret = googleAuth["ClientSecret"]!;
+    });
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -87,12 +115,21 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage(); // This middleware shows detailed error pages in the browser when an unhandled exception occurs.
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookHub API V1");
     });
 }
+else
+{
+    app.UseHttpsRedirection();  // Ensure HTTPS redirection in production
+}
+
+app.UseCors("AllowAngularApp");
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 

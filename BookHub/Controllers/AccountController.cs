@@ -1,5 +1,6 @@
 ﻿using BookHub.Application.Interfaces;
 using BookHub.Application.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookHub.Controllers
@@ -88,6 +89,58 @@ namespace BookHub.Controllers
             }
 
             return BadRequest(400);
+        }
+
+        /// <summary>
+        /// Enter with external provider
+        /// </summary>
+        /// <param name="scheme"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("[action]/{scheme}")]
+        public IActionResult ExternalAuthentication(string scheme, [FromQuery] string? returnUrl)
+        {
+            if (string.IsNullOrEmpty(returnUrl)) returnUrl = "~/";
+
+            // Start challenge and roundtrip the return URL and scheme 
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(Callback), new { scheme }),
+                Items =
+                {
+                    { "returnUrl", returnUrl },
+                }
+            };
+
+            return Challenge(props, scheme);
+        }
+
+        /// <summary>
+        /// Post-processing of external authentication
+        /// </summary>
+        [HttpGet]
+        [Route("[action]/{scheme}")]
+        public async Task<IActionResult> Callback(string scheme)
+        {
+            try
+            {
+                // read external identity from the temporary cookie
+                var result = await HttpContext.AuthenticateAsync(scheme);
+                if (result.Succeeded != true)
+                {
+                    throw new Exception("External authentication error");
+                }
+
+                // retrieve return URL
+                var returnUrl = result.Properties?.Items["returnUrl"] ?? "~/";
+
+                return Redirect(returnUrl);
+            }
+            catch (Exception e)
+            {
+                return Redirect("~/");
+            }
         }
     }
 }

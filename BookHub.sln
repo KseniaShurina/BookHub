@@ -16,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Script_AddAuthors", "Script
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{C151AD08-B423-430B-9E69-C7AF2078A765}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookHub.Application", "BookHub.Application\BookHub.Application.csproj", "{040C78C5-26EA-4BA6-BACD-44C8AFAFD61E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookHub.Application", "BookHub.Application\BookHub.Application.csproj", "{040C78C5-26EA-4BA6-BACD-44C8AFAFD61E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

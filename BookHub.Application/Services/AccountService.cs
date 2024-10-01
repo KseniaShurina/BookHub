@@ -32,14 +32,9 @@ namespace BookHub.Application.Services
             _jwtAudience = configuration["Jwt:Audience"] ?? throw new ArgumentNullException(nameof(_jwtAudience));
         }
 
-        public async Task<string> AuthenticateUserAsync(string email, string password)
+        public async Task<string> GenerateTokenAsync(string email)
         {
             var user = await _unitOfWork.Users.FindByConditionAsync(u => u.Email == email);
-
-            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
-            {
-                throw new ArgumentException(nameof(password));
-            }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
@@ -62,6 +57,20 @@ namespace BookHub.Application.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token).ToString();
+        }
+
+        public async Task<string> AuthenticateUserAsync(string email, string password)
+        {
+            var user = await _unitOfWork.Users.FindByConditionAsync(u => u.Email == email);
+
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+            {
+                throw new ArgumentException(nameof(password));
+            }
+            
+            var token = await GenerateTokenAsync(email);
+
+            return token;
         }
 
         public async Task RegisterUserAsync(UserRegisterModel model)
