@@ -32,16 +32,40 @@ namespace BookHub.Application.Services
             _jwtAudience = configuration["Jwt:Audience"] ?? throw new ArgumentNullException(nameof(_jwtAudience));
         }
 
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            var user = await _unitOfWork.Users.FindByConditionAsync(u => u.Email == email) ?? null;
+
+            return user;
+        }
+
+        public async Task<bool> IsExistsInExternalLoginProviderUserAsync(string email)
+        {
+            var isExists = await _unitOfWork.UserExternalLoginProviders.ExistsAsync(i => i.User.Email == email);
+            return isExists;
+        }
+
+        public async Task<bool> IsExistsUserAsync(string email)
+        {
+            var isExists = await _unitOfWork.Users.ExistsAsync(u => u.Email == email);
+            return isExists;
+        }
+
         public async Task<string> GenerateTokenAsync(string email)
         {
-            var user = await _unitOfWork.Users.FindByConditionAsync(u => u.Email == email);
+            var user = await GetUserByEmailAsync(email);
+
+            if (user is null)
+            {
+                throw new NullReferenceException($"{nameof(user)} is null");
+            }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role, user.Role)
             };
@@ -56,32 +80,63 @@ namespace BookHub.Application.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token).ToString();
+            return tokenHandler.WriteToken(token);
         }
 
-        public async Task<string> AuthenticateUserAsync(string email, string password)
+        public async Task<bool> CheckPassword(string email, string password)
         {
-            var user = await _unitOfWork.Users.FindByConditionAsync(u => u.Email == email);
+            var user = await GetUserByEmailAsync(email);
 
-            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+            if (user is null)
             {
-                throw new ArgumentException(nameof(password));
+                throw new NullReferenceException($"{nameof(user)} is null");
             }
-            
-            var token = await GenerateTokenAsync(email);
 
-            return token;
+            return _passwordHasher.VerifyHashedPassword(
+                user, user.PasswordHash, password) == PasswordVerificationResult.Success;
         }
 
         public async Task RegisterUserAsync(UserRegisterModel model)
         {
-            var exists = await _unitOfWork.Users.ExistsAsync(u => u.Email == model.Email);
-            if (exists) throw new ArgumentException("User with these parameters already exist", $"{nameof(model.Email)}");
+            var isExists = await IsExistsUserAsync(model.Email);
+
+            if (isExists) throw new ArgumentException("User with this email already exists");
 
             var user = _mapper.Map<User>(model);
             user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
 
             await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task RegisterUserByExternalProviderAsync(string email, string scheme, string externalId)
+        {
+            var newUser = new UserRegisterModel
+            {
+                Email = email,
+                Password = externalId + "!",
+            };
+            await RegisterUserAsync(newUser);
+
+
+            var user = await GetUserByEmailAsync(email);
+
+            if (user is null)
+            {
+                throw new NullReferenceException($"{nameof(user)} is null");
+            }
+
+            var model = new UserExternalProviderRegisterModel
+            {
+                Email = email,
+                Scheme = scheme,
+                ExternalId = externalId,
+                UserId = user.Id,
+            };
+
+            var provider = _mapper.Map<UserExternalLoginProvider>(model);
+
+            await _unitOfWork.UserExternalLoginProviders.AddAsync(provider);
             await _unitOfWork.SaveChangesAsync();
         }
     }

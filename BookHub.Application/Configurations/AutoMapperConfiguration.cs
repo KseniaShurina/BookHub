@@ -10,6 +10,7 @@ namespace BookHub.Application.Configurations
             services.AddAutoMapper(typeof(AuthorProfile).Assembly);
             services.AddAutoMapper(typeof(BookProfile).Assembly);
             services.AddAutoMapper(typeof(UserProfile).Assembly);
+            services.AddAutoMapper(typeof(UserExternalLoginProviderProfile).Assembly);
 
             return services;
         }

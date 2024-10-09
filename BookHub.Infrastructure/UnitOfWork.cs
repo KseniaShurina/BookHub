@@ -13,6 +13,7 @@ public class UnitOfWork : IUnitOfWork
     private IRepository<Author>? _authorRepository;
     private IRepository<Book>? _bookRepository;
     private IRepository<User>? _userRepository;
+    private IRepository<UserExternalLoginProvider>? _UserExternalLoginProvidersRepository;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnitOfWork"/> class.
@@ -34,6 +35,9 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Book> Books => _bookRepository ??= new Repository<Book>(_context);
 
     public IRepository<User> Users => _userRepository ??= new Repository<User>(_context);
+
+        public IRepository<UserExternalLoginProvider> UserExternalLoginProviders => 
+            _UserExternalLoginProvidersRepository ??= new Repository<UserExternalLoginProvider>(_context);
 
     /// <summary>
     /// Saves all changes made in this context to the database asynchronously.

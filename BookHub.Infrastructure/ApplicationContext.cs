@@ -32,5 +32,7 @@ namespace BookHub.Infrastructure
         /// This represents the collection of all <see cref="User"/> entities in the context.
         /// </summary>
         public DbSet<User> Users { get; set; } = null!;
+
+        public DbSet<UserExternalLoginProvider> UserExternalLoginProviders { get; set; } = null!;
     }
 }

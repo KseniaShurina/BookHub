@@ -1,6 +1,11 @@
-﻿using BookHub.Application.Interfaces;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using BookHub.Application.Interfaces;
 using BookHub.Application.Models;
+using BookHub.Constants;
+using BookHub.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookHub.Controllers
@@ -29,6 +34,19 @@ namespace BookHub.Controllers
             _accountService = accountService;
         }
 
+        [Authorize]
+        [HttpGet("GetUserInfo")]
+        public IActionResult GetUserInfo()
+        {
+            var userIdClaim = User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier);
+            var userInfo = new UserInfoDto
+            {
+                Id = Guid.Parse(userIdClaim.Value)
+            };
+
+            return Ok(userInfo);
+        }
+
         /// <summary>
         /// Authenticates a user and generates a JWT token if the credentials are valid.
         /// </summary>
@@ -38,11 +56,11 @@ namespace BookHub.Controllers
         /// <returns>
         /// Returns an <see cref="IActionResult"/> indicating the result of the login process.
         /// </returns>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(object))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TokenResponseDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginModel model)
         {
             if (!ModelState.IsValid)
@@ -52,14 +70,14 @@ namespace BookHub.Controllers
 
             try
             {
-                var token = await _accountService.AuthenticateUserAsync(model.Email, model.Password);
-
-                if (string.IsNullOrEmpty(token))
+                if (!(await _accountService.CheckPassword(model.Email, model.Password)))
                 {
                     return Unauthorized("Invalid credentials");
                 }
 
-                return Ok(new { Token = token });
+                var token = await _accountService.GenerateTokenAsync(model.Email);
+
+                return Ok(new TokenResponseDto { Token = token });
 
             }
             catch (Exception)
@@ -79,7 +97,7 @@ namespace BookHub.Controllers
         /// </returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterModel model)
         {
             if (ModelState.IsValid)
@@ -92,14 +110,17 @@ namespace BookHub.Controllers
         }
 
         /// <summary>
-        /// Enter with external provider
+        /// Enter with external provider.
         /// </summary>
         /// <param name="scheme"></param>
+        /// <param name="callbackUrl"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("[action]/{scheme}")]
-        public IActionResult ExternalAuthentication(string scheme, [FromQuery] string? returnUrl)
+        [Route("Login/External/{scheme}")]
+        public IActionResult ExternalAuthentication(string scheme,
+            [FromQuery][Required] string callbackUrl,
+            [FromQuery] string? returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl)) returnUrl = "~/";
 
@@ -109,6 +130,7 @@ namespace BookHub.Controllers
                 RedirectUri = Url.Action(nameof(Callback), new { scheme }),
                 Items =
                 {
+                    { "callbackUrl", callbackUrl },
                     { "returnUrl", returnUrl },
                 }
             };
@@ -117,10 +139,11 @@ namespace BookHub.Controllers
         }
 
         /// <summary>
-        /// Post-processing of external authentication
+        /// Handles the callback from the external provider after authentication.
         /// </summary>
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
-        [Route("[action]/{scheme}")]
+        [Route("Callback/{scheme}")]
         public async Task<IActionResult> Callback(string scheme)
         {
             try
@@ -132,14 +155,62 @@ namespace BookHub.Controllers
                     throw new Exception("External authentication error");
                 }
 
+                var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                {
+                    throw new Exception("Email not found");
+                }
+
+                var isExists = await _accountService.IsExistsInExternalLoginProviderUserAsync(email);
+
+                //if user not fount create new user
+                if (!isExists)
+                {
+                    string externalId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                                        throw new Exception("externalId not found");
+
+                    await _accountService.RegisterUserByExternalProviderAsync(email, scheme, externalId);
+                }
+
+                // If the user is found, Login user and redirect to the return URL
+                var token = await _accountService.GenerateTokenAsync(email) ??
+                            throw new ArgumentNullException($"Token is null");
+
+                var callbackUrl = result.Properties?.Items["callbackUrl"]!;
+
                 // retrieve return URL
                 var returnUrl = result.Properties?.Items["returnUrl"] ?? "~/";
 
-                return Redirect(returnUrl);
+                Console.WriteLine($"User {email} authorized");
+                return Redirect(callbackUrl.TrimEnd('/') + $"?token={token}&returnUrl{returnUrl}");
             }
             catch (Exception e)
             {
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Inner Exception: {e.InnerException}");
+
                 return Redirect("~/");
+            }
+        }
+
+        /// <summary>
+        /// Logs out the currently authenticated user.
+        /// </summary>
+        /// <returns>Returns a NoContent result upon successful logout.</returns>
+        [Authorize]
+        [HttpPost("Logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await HttpContext.SignOutAsync(AuthConstants.ExternalProviderAuthScheme);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
         }
     }

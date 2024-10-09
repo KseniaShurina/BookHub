@@ -30,9 +30,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp", configurePolicy =>
     {
         configurePolicy
-            .AllowAnyOrigin() // This allows requests from any origin (any domain)
-            .AllowAnyMethod() // This allows any HTTP method 
-            .AllowAnyHeader(); // This allows requests to include any HTTP headers
+            .WithOrigins("http://localhost:4200") // Allow request from current domain.
+            .AllowCredentials() // Allow sends cookies.
+            .AllowAnyMethod() // This allows any HTTP method.
+            .AllowAnyHeader(); // This allows requests to include any HTTP headers.
     });
 });
 
@@ -41,6 +42,7 @@ builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        //
         options.DefaultSignInScheme = AuthConstants.ExternalProviderAuthScheme;
     })
     .AddJwtBearer(x =>
@@ -132,6 +134,8 @@ app.UseCors("AllowAngularApp");
 app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

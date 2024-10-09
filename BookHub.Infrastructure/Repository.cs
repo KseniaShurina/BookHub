@@ -24,33 +24,19 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    /// <summary>
-    /// Checks if any entity in the DbSet matches the specified predicate.
-    /// </summary>
-    /// <param name="predicate">A lambda expression representing the condition to check.</param>
-    /// <returns>true if any entity matches the predicate. Otherwise, false.</returns>
+    /// <inheritdoc />
     public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
     {
         return await _dbSet.AnyAsync(predicate);
     }
 
-    /// <summary>
-    /// Returns the first entity that matches the specified condition.
-    /// </summary>
-    /// <param name="expression">A lambda expression representing the condition to match.</param>
-    /// <returns>The first entity that matches the condition, or null if no entity matches.</returns>
-    public async Task<T> FindByConditionAsync(Expression<Func<T, bool>> expression)
+    /// <inheritdoc />
+    public async Task<T?> FindByConditionAsync(Expression<Func<T, bool>> expression)
     {
-        return await _context.Set<T>().FirstOrDefaultAsync(expression) 
-               ?? throw new ArgumentNullException();
+        return await _context.Set<T>().FirstOrDefaultAsync(expression);
     }
 
-    /// <summary>
-    /// Asynchronously retrieves an entity by its unique identifier, optionally including related properties.
-    /// </summary>
-    /// <param name="id">The unique identifier of the entity.</param>
-    /// <param name="includeProperties">A comma-separated list of related properties to include in the query.</param>
-    /// <returns>The entity if found; otherwise, null.</returns>
+    /// <inheritdoc />
     public virtual async Task<T> GetByIdAsync(Guid id, string includeProperties = "")
     {
         //Creating a Basic Query to _dbSet
@@ -63,20 +49,14 @@ public class Repository<T> : IRepository<T> where T : class
             query = query.Include(includeProperty);
         }
 
-        return await query.SingleOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id) 
+        return await query.SingleOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id)
                ?? throw new ArgumentNullException(); ;
     }
 
-    /// <summary>
-    /// Asynchronously retrieves a collection of entities from the database with optional filtering, sorting, and inclusion of related properties.
-    /// </summary>
-    /// <param name="filter">An optional filter expression to apply to the query.</param>
-    /// <param name="orderBy">An optional function to sort the query results.</param>
-    /// <param name="includeProperties">A comma-separated list of related properties to include in the query.</param>
-    /// <returns>A collection of entities that match the specified criteria.</returns>
+    /// <inheritdoc />
     public virtual async Task<IEnumerable<T>> GetAllAsync(
-        Expression<Func<T, bool>> filter = null,
-        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Expression<Func<T, bool>>? filter = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
         string includeProperties = "")
     {
         IQueryable<T> query = _dbSet;
@@ -102,29 +82,19 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    /// <summary>
-    /// Adds a new entity asynchronously.
-    /// </summary>
-    /// <param name="entity">The entity to add.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <inheritdoc />
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);
     }
 
-    /// <summary>
-    /// Updates an existing entity.
-    /// </summary>
-    /// <param name="entity">The entity to update.</param>
+    /// <inheritdoc />
     public void Update(T entity)
     {
         _dbSet.Update(entity);
     }
 
-    /// <summary>
-    /// Removes an existing entity.
-    /// </summary>
-    /// <param name="entity">The entity to remove.</param>
+    /// <inheritdoc />
     public async Task RemoveAsync(Guid id)
     {
         var entity = await _dbSet.FindAsync(id) ?? throw new NullReferenceException("Entity not found");
